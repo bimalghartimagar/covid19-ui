@@ -3,13 +3,13 @@
     <v-row align="center">
 
       <v-col class="d-flex" cols="2">
-        <v-select :items="locations" :value="'Nepal'" label="Countries" outlined @change="fetchLocationData"></v-select>
+        <v-select :items="locations" :value="location" label="Countries" outlined @change="fetchLocationData"></v-select>
       </v-col>
 
       <v-col cols="12">
         <v-card>
           <v-toolbar color="light-green" dark>
-            <v-toolbar-title>COVID 19 - NEPAL</v-toolbar-title>
+            <v-toolbar-title>COVID 19 Total Cumulative Cases - {{location}}</v-toolbar-title>
           </v-toolbar>
           <v-card-text>
             <line-chart :chart-data="chartdata"></line-chart>
@@ -40,13 +40,15 @@ export default {
           purple: 'rgb(153, 102, 255)',
           grey: 'rgb(201, 203, 207)'
         },
-        locations: []
+        locations: [],
+        location: 'Nepal'
       }
     }
   },
   methods: {
     fetchLocationData (location) {
       axios.get(`/data/${location}`).then(data => {
+        this.location = location
         this.chartdata = {
           labels: data.data.map(x => x[0]),
           datasets: [
