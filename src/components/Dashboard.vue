@@ -17,7 +17,7 @@
             <v-toolbar-title>COVID 19 Total Cumulative Cases - {{location}}</v-toolbar-title>
           </v-toolbar>
           <v-card-text>
-            <line-chart :chart-data="chartdata"></line-chart>
+            <line-chart :chart-data="lineData"></line-chart>
           </v-card-text>
         </v-card>
       </v-col>
@@ -27,7 +27,7 @@
             <v-toolbar-title>COVID 19 Daily New Cases - {{location}}</v-toolbar-title>
           </v-toolbar>
           <v-card-text>
-            <bar-chart :chart-data="newCaseData"></bar-chart>
+            <bar-chart :chart-data="barData"></bar-chart>
           </v-card-text>
         </v-card>
       </v-col>
@@ -44,11 +44,11 @@ export default {
   components: { LineChart, BarChart },
   data: function () {
     return {
-      chartdata: {
+      lineData: {
         labels: [],
         datasets: []
       },
-      newCaseData: {
+      barData: {
         labels: [],
         datasets: []
       },
@@ -70,23 +70,34 @@ export default {
       axios.get(`/data/${location}`).then(data => {
         this.location = location
 
-        this.chartdata = this.getUpdatedChartData(data, 1, 'blue')
+        const lineDataOpts = [
+          { id: 1, color: 'blue', label: 'Total Cases' }, // total cumulative
+          { id: 3, color: 'red', label: 'Total Deaths' } // total deaths
+        ]
 
-        this.newCaseData = this.getUpdatedChartData(data, 2, 'orange')
+        const barDataOpts = [
+          { id: 2, color: 'orange', label: 'Daily New Cases' }, // daily new cases
+          { id: 4, color: 'red', label: 'Daily Deaths' } // daily deaths
+        ]
+
+        this.lineData = this.getUpdatedChartData(data, lineDataOpts)
+
+        this.barData = this.getUpdatedChartData(data, barDataOpts)
       })
     },
-    getUpdatedChartData (data, dataIndex, color) {
+    getUpdatedChartData (data, opts) {
+      const datasets = opts.map(element => {
+        return {
+          label: element.label,
+          fill: false,
+          borderColor: this.chartColors[element.color],
+          backgroundColor: this.chartColors[element.color],
+          data: data.data.map(x => x[element.id])
+        }
+      })
       return {
         labels: data.data.map(x => x[0]),
-        datasets: [
-          {
-            label: this.location,
-            fill: false,
-            borderColor: this.chartColors[color],
-            backgroundColor: this.chartColors[color],
-            data: data.data.map(x => x[dataIndex])
-          }
-        ]
+        datasets: datasets
       }
     }
   },
