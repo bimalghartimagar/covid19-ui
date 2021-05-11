@@ -1,14 +1,48 @@
 <template>
   <v-container fluid>
     <v-row align="center">
-      <v-col class="d-flex" cols="4" md="5" sm="12" xs="12">
+      <v-col class="d-flex" cols="12" md="6" sm="12" xs="12">
         <v-select
           :items="locations"
           :value="location"
           label="Countries"
+          prepend-icon="mdi-earth"
           outlined
           @change="fetchLocationData"
         ></v-select>
+      </v-col>
+
+      <v-col class="d-flex" cols="12" md="6" sm="12" xs="12">
+        <v-menu
+        v-model="dateMenu"
+        :close-on-content-click="false"
+        :nudge-right="40"
+        transition="scale-transition"
+        offset-y
+        min-width="290px"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-text-field
+            v-model="picker"
+            label="Select Month"
+            prepend-icon="mdi-calendar"
+            readonly
+            v-bind="attrs"
+            v-on="on"
+            outlined
+          ></v-text-field>
+        </template>
+        <v-date-picker
+        @change="updateMonth"
+      v-model="picker"
+      type="month"
+      year-icon="mdi-calendar-blank"
+      prev-icon="mdi-skip-previous"
+      next-icon="mdi-skip-next"
+      range
+      :show-current="new Date().toISOString().substr(0, 7)"
+    ></v-date-picker>
+      </v-menu>
       </v-col>
 
       <v-col cols="12">
@@ -62,12 +96,18 @@ export default {
         grey: 'rgb(201, 203, 207)'
       },
       locations: [],
-      location: 'Nepal'
+      location: 'Nepal',
+      picker: [new Date().toISOString().substr(0, 7), new Date().toISOString().substr(0, 7)],
+      dateMenu: false
     }
   },
   methods: {
-    fetchLocationData (location) {
-      axios.get(`/data/${location}`).then(data => {
+    updateMonth (picker) {
+      this.fetchLocationData(this.location)
+      this.dateMenu = false
+    },
+    fetchLocationData (location, month) {
+      axios.get(`/data/${location}/${this.picker.sort()}`).then(data => {
         this.location = location
 
         const lineDataOpts = [
